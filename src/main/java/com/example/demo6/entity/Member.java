@@ -1,10 +1,12 @@
 package com.example.demo6.entity;
 
+import com.example.demo6.dto.*;
 import com.fasterxml.jackson.annotation.*;
 import lombok.*;
 import org.springframework.web.multipart.*;
 
 import java.time.*;
+import java.time.temporal.*;
 
 @Getter
 @Builder
@@ -40,4 +42,9 @@ public class Member {
   private int failedAttempts = 0;
   @Builder.Default
   private boolean isLock = false;
+
+  public MemberDto.Read toRead() {
+    long days = ChronoUnit.DAYS.between(joinDay, LocalDate.now());
+    return new MemberDto.Read(username, email, profile, joinDay, days, level);
+  }
 }

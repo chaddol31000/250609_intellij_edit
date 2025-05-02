@@ -37,19 +37,25 @@ public class MemberService {
 //    return member;
 
     // 1. 비밀번호 암호화
-
     String encodedPassword = encoder.encode(dto.getPassword());
-    // 2. 프사를 업로드 했다면 저장을 위해 base64 인코딩
+
+    // 2. 프사를 업로드 했다면 저장을 위해 base64 인코딩, 프사 확인 (업로드하지 않았다면 기본 프사를 저장)
     MultipartFile profile = dto.getProfile();
+    // 프론트에 <input type='file' name='profile'> 이 없다면 profile 이 null 이 된다
+    // 이 경우 profile.isEmpty() 는 null pointer exception(NPE)
+    boolean 프사_존재 = profile!=null && !profile.isEmpty();
     // <input type='file' name='profile'> 이렇게 input 이 있지만 선택은 하지 않음 → null은 아님
     // <input type='text' name='username'> → 입력을 하지 않았다 → 서버에서 꺼내면 null 이 아니라 ""
     String base64Image = "";
-    if(!profile.isEmpty()) {
-      try {
+    try {
+      if(프사_존재) {
+        // 사용자가 업로드한 이미지를 base64 로 바꾸는 함수는 실패할 수 있다
         base64Image = Demo6Util.convertToBase64(profile);
-      } catch(IOException e) {
-        e.printStackTrace();
+      } else {
+        base64Image = Demo6Util.getDefaultBase64Profile();
       }
+    } catch(IOException e) {
+
     }
     // 3. 암호화된 비밀번호, base64 이미지를 가지고 dto 를 member 로 변환
     Member member = dto.toEntity(encodedPassword, base64Image);
@@ -73,5 +79,24 @@ public class MemberService {
     String newPassword = RandomStringUtils.secure().nextAlphanumeric(20);
     memberDao.updatePassword(dto.getUsername(), newPassword);
     return Optional.ofNullable(newPassword);
+  }
+
+  public MemberDto.Read read(String loginId) {
+    Member member = memberDao.findByUsername(loginId);
+    return member.toRead();
+  }
+
+  public boolean changePassword(MemberDto.PasswordChange dto, String loginId) {
+    // 기존 암호화된 비밀번호를 읽어와 비밀번호가 맞는 지 확인하는 과정이 필요함
+    // 비밀번호가 일치한 경우 새 비밀번호로 업데이트 → 틀리면 false
+    String encodedPassword = memberDao.findPasswordByUsername(loginId);
+    if(encoder.matches(dto.getCurrentPassword(), encodedPassword))
+      return false;
+    // 비밀번호가 일치한 경우 새 비밀번호로 업데이트
+    return memberDao.updatePassword(loginId, encoder.encode(dto.getNewPassword()))==1;
+  }
+
+  public void resign(String loginId) {
+    memberDao.delete(loginId);
   }
 }
