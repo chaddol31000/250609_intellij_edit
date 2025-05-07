@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo6.exercise.EmpDao">
+    <select id="findJob2" resultType="string">
+        select distinct job from emp
+    </select>
+
+    <!--
+         sql 을 작성중인 파일은 xml 파일이다.
+         인텔리제이가 볼 때 현재 파일에는 당연히 xml 이 들어있다고 판단, 처리 (PCDATA)
+         실제로는 xml 문서 안에 sql 이 들어있고, 이 sql 은 xml 처리기가 처리하면 안됨 (CDATA)
+
+        조인할 때 앞에 오는 테이블을 driving table 이라고 함
+
+    -->
+
+    <select id="findEmpBySalLessThan2" resultType="map">
+        <![CDATA[
+        select * from emp where sal<=#{sal}
+        ]]>
+    </select>
+
+    <select id="findEmpByDname" resultType="map">
+        <![CDATA[
+        select * from dept d join emp e on d.deptno=e.deptno where d.dname=#{dname}
+        ]]>
+    </select>
+
+    <select id="findByEmpno" resultType="map">
+        select * from emp where empno=#{empno}
+    </select>
+
+    <select id="findByPosition" resultType="map">
+        select distinct nvl(position, '사원') from emp2
+    </select>
+
+    <select id="findByEmpType" resultType="map">
+        select distinct emp_type from emp2
+    </select>
+
+    <select id="findEmp2ByEmpno" resultType="map">
+        select * from emp2 where empno=#{empno}
+    </select>
+</mapper>
