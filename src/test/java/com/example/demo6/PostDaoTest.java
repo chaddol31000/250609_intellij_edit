@@ -12,13 +12,13 @@ public class PostDaoTest {
   @Autowired
   private PostDao postDao;
 
-//  @Test
-//  public void 글때려박기() {
-//    for(int i = 0; i<123; i++) {
-//      Post p = Post.builder().title(i+"번째 글").content("내용 없음").writer("spring").build();
-//      postDao.save(p);
-//    }
-//  }
+  @Test
+  public void 글때려박기() {
+    for(int i = 0; i<123; i++) {
+      Post p = Post.builder().title(i+"번째 글").content("내용 없음").writer("spring").build();
+      postDao.save(p);
+    }
+  }
 
   @Test
   public void 페이징쿼리퀘스트() {

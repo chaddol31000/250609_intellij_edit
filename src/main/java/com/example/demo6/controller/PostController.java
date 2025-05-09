@@ -4,14 +4,21 @@ import com.example.demo6.dto.*;
 import com.example.demo6.entity.*;
 import com.example.demo6.service.*;
 import io.swagger.v3.oas.annotations.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.Binding;
 import java.security.*;
 import java.util.*;
 
+// @Validated 는 스프링 검증, 없으면 자바 표준 검증 수행. 스프링 검증이 좀 더 간략함
 @Validated
 @RestController
 public class PostController {
@@ -51,6 +58,35 @@ public class PostController {
 
     // 위 같은 경우는 GetMapping 에 "/posts/post" 라고 링크를 걸어도 코드가 실행됨
     // 왜?? @RequestParam 이니까 pno 가 없어도 코드가 죽지 않고 실행되기 때문
+  }
+  @Operation(summary = "글쓰기")
+  @PreAuthorize("isAuthenticated()") // 관리자도 글 작성이 가능함 (로그인한 아이디만 검열함)
+  @Secured("ROLE_USER") // 실제 게시판을 만들 때는 Secured 를 쓰는 게 더 낫다 (Secured 는 관리자 계정으로는 작성 불가능)
+  @PostMapping("/posts/new")
+  public ResponseEntity<Post> write(@ModelAttribute @Valid PostDto.Write dto, BindingResult br, Principal principal) {
+    // 작성한 글을 그대로 쏴주기
+    // 보통 관습적으로 엔티티를 쏴준다
+    // principal 은 로그인 한 값이 null 인 걸 검열하나 지금 secured 가 걸려 있어서 어차피 실패하면 튕김 그래서 검열을 할 필요가 없음
+    Post post = service.write(dto, principal.getName());
+    return ResponseEntity.ok(post);
+  }
 
+  @Secured("ROLE_USER")
+  @PutMapping("/posts/post")
+  @Operation(summary = "글변경", description = "글번호로 제목과 내용 변경")
+  public ResponseEntity<String> update(@ModelAttribute @Valid PostDto.Update dto, BindingResult br, Principal principal) {
+    // 글 쓴 사람이 맞나 확인해야 하기에 principal 이 있어야함
+    service.update(dto, principal.getName());
+    return ResponseEntity.ok("글을 변경했습니다");
+  }
+
+  @Secured("ROLE_USER")
+  @DeleteMapping("/posts/post")
+  @Operation(summary = "삭제")
+  public ResponseEntity<String> delete(@RequestParam @NotNull Integer pno, Principal principal) {
+    // 만약 pno 를 검열하려면 NotNull 이 필요함 ! 꼭 NotNull 로 검열해주기
+    // @Validated 이 없으면 NotNull 로 검열이 불가능
+    service.delete(pno, principal.getName());
+    return ResponseEntity.ok("글을 삭제했습니다");
   }
 }

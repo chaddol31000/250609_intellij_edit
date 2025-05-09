@@ -20,4 +20,10 @@ public class ProcessingFaultAdvice {
   public ResponseEntity<String> entityNotFoundException(EntityNotFoundException e) {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
   }
+
+  // 사용자 정의 : 작업이 실패했을 때
+  @ExceptionHandler(JobFailException.class)
+  public ResponseEntity<String> jobFailException(JobFailException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+  }
 }

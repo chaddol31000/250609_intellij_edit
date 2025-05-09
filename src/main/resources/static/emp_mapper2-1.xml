@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.exercise.EmpDao2">
+    <resultMap id="mapForEmp" type="com.example.demo.execise.Emp">
+        <id column="empno" property="empno" />
+        <result column="ename" property="ename" />
+        <result column="job" property="job" />
+        <result column="emp_deptno" property="deptno" />
+    </resultMap>
+    <resultMap type="com.example.demo.execise.DeptWithEmp" id="mapForDept">
+        <id column="deptno" property="deptno" />
+        <result column="dname" property="dname" />
+        <result column="loc" property="loc" />
+        <collection property="emps" ofType="com.example.demo.execise.Emp" resultMap="mapForEmp"/>
+    </resultMap>
+    <select id="findByDeptno" resultMap="mapForDept">
+        select d.deptno, d.dname, d.loc, e.empno, e.ename, e.job, e.deptno as emp_deptno
+        from dept d join emp e on d.deptno=e.deptno
+        where d.deptno=#{deptno}
+    </select>
+</mapper>

@@ -1,6 +1,8 @@
 package com.example.demo6.dao;
 
+import com.example.demo6.dto.PostDto;
 import com.example.demo6.entity.*;
+import jakarta.validation.constraints.NotEmpty;
 import org.apache.ibatis.annotations.*;
 
 import java.util.*;
@@ -33,5 +35,12 @@ public interface PostDao {
   Optional<Post> findByPno(int pno);
 
   Optional<Map<String,Object>> findByPnoWithComments(int pno);
+
+  @Update("update posts set title=#{title}, content=#{content} where pno=#{pno}")
+  int update(PostDto.Update dto);
+
+  @Delete("delete from posts where pno=#{pno}")
+  int delete(Integer pno);
+
 
 }
