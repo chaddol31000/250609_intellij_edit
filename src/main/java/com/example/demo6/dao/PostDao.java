@@ -42,5 +42,11 @@ public interface PostDao {
   @Delete("delete from posts where pno=#{pno}")
   int delete(Integer pno);
 
+  // 추천 수 가져오기
+  @Select("select good_cnt from posts where pno=#{pno}")
+  int findGoodCntByPno (int pno);
 
+  // 추천 수 증가
+  @Update("update posts set good_cnt=good_cnt+1 where pno=#{pno}")
+  int increaseGoodCnt(int pno);
 }

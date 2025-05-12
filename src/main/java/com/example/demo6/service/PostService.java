@@ -6,7 +6,6 @@ import com.example.demo6.entity.*;
 import com.example.demo6.exception.*;
 
 import com.example.demo6.util.*;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 
@@ -18,6 +17,8 @@ public class PostService {
   private PostDao postDao;
   @Autowired
   private CommentDao commentDao;
+  @Autowired
+  private postMemberGoodDao postMemberGoodDao;
   private static final int BLOCK_SIZE = 5;
 
   public PostDto.Pages findAll(int pageno, int pagesize) {
@@ -77,5 +78,25 @@ public class PostService {
     if(!post.getWriter().equals(loginId))
       throw new JobFailException("잘못된 작업입니다");
     postDao.delete(pno);
+  }
+
+  public int 추천(int pno, String loginId) {
+    // 자기가 작성한 글은 추천할 수 없다
+    // 비로그인이면 추천할 수 없다 → @PreAuthrize() 로 필터링 돼서 여기까지 안 옴 (신경 쓸 필요 x)
+    // 자기가 작성하지 않은 글은 추천할 수 있다
+
+    // 1. 글이 없으면 예외 처리
+    // 1-1. 자기가 작성한 글이면 추천을 못하기에 예외 처리
+    // 2. 이미 추천한 글이면 기존 추천 수를 리턴 or 이미 추천한 글이면 예외 처리
+    // 3. 추천하지 않은 글이면 추천 후 시로운 추천 수를 리턴
+    Post post = postDao.findByPno(pno).orElseThrow(() -> new EntityNotFoundException("글을 찾을 수 없습니다"));
+    if (post.getWriter().equals(loginId))
+      throw new JobFailException("자신의 글은 추천할 수 없습니다");
+    boolean 추천했니 = postMemberGoodDao.existsByPnoAndUsername(pno, loginId);
+    if (추천했니)
+      throw new JobFailException("이미 추천했습니다");
+    postMemberGoodDao.save(pno, loginId);
+    postDao.increaseGoodCnt(pno);
+    return postDao.findGoodCntByPno(pno);
   }
 }

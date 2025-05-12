@@ -13,8 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.*;
 import org.springframework.web.bind.annotation.*;
-
-import javax.naming.Binding;
 import java.security.*;
 import java.util.*;
 
@@ -88,5 +86,13 @@ public class PostController {
     // @Validated 이 없으면 NotNull 로 검열이 불가능
     service.delete(pno, principal.getName());
     return ResponseEntity.ok("글을 삭제했습니다");
+  }
+
+  @Secured("ROLE_USER")
+  @PutMapping("/posts/good")
+  @Operation(summary = "글 추천", description = "이미 추천한 글은 재추천 불가")
+  public ResponseEntity<Integer> 추천 (@RequestParam @NotNull Integer pno, Principal principal) {
+    int newGoodCnt = service.추천(pno, principal.getName());
+    return ResponseEntity.ok(newGoodCnt);
   }
 }
