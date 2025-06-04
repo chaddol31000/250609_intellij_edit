@@ -95,4 +95,7 @@ public class PostController {
     int newGoodCnt = service.추천(pno, principal.getName());
     return ResponseEntity.ok(newGoodCnt);
   }
+
+//  @Operation(summary = "글 비추", description = "이미 비추천한 글은 다시 불가")
+//  public ResponseEntity<Integer> 비추천
 }
