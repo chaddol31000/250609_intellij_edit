@@ -1,0 +1,69 @@
+drop table members;
+drop table posts;
+drop table comments;
+drop table posts_members;
+
+drop sequence posts_seq;
+drop sequence comments_seq;
+
+create sequence posts_seq;
+create sequence comments_seq;
+
+create table members (
+                         username varchar2(10 char),
+                         password varchar2(60 char) ,
+                         email varchar2(30 char),
+                         join_day date,
+                         role varchar2(15 char),
+                         levels varchar2(15 char),
+                        -- 이미지를 base64 인코딩해서 저장
+                         profile clob,
+                        -- 처음에 회원가입 하면 비활성화. 확인 코드를 인증하면 활성화
+                         is_lock number(1),
+                         failed_attempts number(1),
+                         constraint members_pk_username primary key(username)
+);
+
+-- 테이블에 컬럼을 추가 (제일 마지막에 추가된다)
+alter table members add code varchar2(20);
+
+create table posts (
+                       pno number(6),
+                       title varchar2(50 char),
+                       content clob,
+                       write_time date,
+                       writer varchar2(10 char),
+                       read_cnt number(6),
+                       good_cnt number(6),
+                       bad_cnt number(6),
+                       constraint posts_pk_pno primary key(pno)
+);
+
+create table comments (
+                          cno number(6),
+                          content varchar2(100 char),
+                          write_time date,
+                          writer varchar2(10 char),
+                          pno number(6),
+                          constraint comments_pk_cno primary key(cno),
+                          constraint comments_fk_pno foreign key(pno) references posts(pno)
+);
+
+create table posts_members (
+                               pno number(6),
+                               username varchar2(10 char),
+                               constraint posts_member_pk primary key(pno, username)
+);
+alter table posts_members rename to posts_members_good;
+
+create table  posts_members_bad (
+    pno number(6),
+    username varchar2(10 char),
+    constraint posts_member_bad_pk primary key(pno, username)
+);
+
+select * from posts;
+
+select * from members;
+
+select * from members;

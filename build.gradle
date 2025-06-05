@@ -25,6 +25,7 @@ repositories {
 
 dependencies {
     // 스프링 시큐리티
+    // spring-boot-starter-mail : 뒤에 버전 지우기
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'

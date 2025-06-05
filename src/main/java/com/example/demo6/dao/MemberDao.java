@@ -13,11 +13,12 @@ public interface MemberDao {
 
   int save(Member member);
 
+  // 체크 코드가 활성화 되었는지 is_lock 의 boolean 으로 확인
+  @Update("update members set is_lock=0 where code=#{code} and rownum=1")
+  int verifyCode(String code);
+
   @Select("select username from members where email=#{email} and rownum=1")
   Optional<String> findUsernameByEmail(String email);
-
-  @Select("select count(*) from members where username=#{username} and email=#{email} and rownum=1")
-  boolean existsByUsernameAndEmail(MemberDto .GeneratePassword dto);
 
   @Update("update members set password=#{newPassword} where username=#{username}")
   int updatePassword(String username, String newPassword);

@@ -4,9 +4,12 @@ import com.example.demo6.dao.*;
 import com.example.demo6.dto.*;
 import com.example.demo6.entity.*;
 import com.example.demo6.util.*;
-import jakarta.validation.*;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.apache.commons.lang3.*;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.multipart.*;
@@ -20,6 +23,27 @@ public class MemberService {
   private MemberDao memberDao;
   @Autowired
   private PasswordEncoder encoder;
+  @Autowired
+  private JavaMailSender mailSender;
+
+  public void sendMail(String 보낸이, String 받는이, String 제목, String 내용) {
+    MimeMessage mimeMessage = mailSender.createMimeMessage();
+    // Mime :
+      // ex. MediaType (ContentType 원조가 Mime)
+      // 누가 짜나 똑같음
+    try {
+      MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "utf-8");
+      // 보낸이는 누구로 정해놔도 내 gmail 아이디로 전송됨
+      helper.setFrom(보낸이);
+      helper.setTo(받는이);
+      helper.setSubject(제목);
+      // 두번째 파라미터는 html 활성화 여부 <a href='aaa'>링크</a>
+      helper.setText(내용,true);
+    } catch(MessagingException e) {
+      e.printStackTrace();
+    }
+    mailSender.send(mimeMessage);
+  }
 
   public boolean checkUsername(MemberDto.UsernameCheck dto) {
     return !memberDao.existsByUsername(dto.getUsername());
@@ -57,28 +81,54 @@ public class MemberService {
     } catch(IOException e) {
 
     }
-    // 3. 암호화된 비밀번호, base64 이미지를 가지고 dto 를 member 로 변환
-    Member member = dto.toEntity(encodedPassword, base64Image);
+    // 3. 암호화된 비밀번호, base64 이미지, 랜덤한 체크 코드를 가지고 dto 를 member 로 변환
+    String code = RandomStringUtils.secure().nextAlphanumeric(20);
+    Member member = dto.toEntity(encodedPassword, base64Image, code);
+    // 4. 이메일 발송
+    String checkUrl = "http://localhost:8080/api/members/verify?code=" + code;
+    String html = "<p>가입해주셔서 감사합니다</p>";
+    html += "<p>아래의 링크를 클릭하시면 가입이 완료됩니다</p>";
+    html += "<a href='"+ checkUrl + "'>링크</a>";
+
     memberDao.save(member);
+    sendMail("master@gmail.com", member.getEmail(), "가입확인메일", html);
     return member;
+
+  }
+
+  public boolean verify (String code) {
+    // 맞으면 1 아니면 0
+    return memberDao.verifyCode(code)==1;
   }
 
   public Optional<String> searchUsername(String email) {
     return memberDao.findUsernameByEmail(email);
   }
 
-  public Optional<String> getTemporaryPassword(MemberDto.GeneratePassword dto) {
+  public boolean getTemporaryPassword(MemberDto.FindPassword dto) {
     // 1. 아이디와 이메일이 일치하는 사용자가 있는 지 확인
     // 2. 사용자가 없을 경우 비어있는 Optional 을 리턴 → 컨트롤러에서 if 문으로 처리
     // 3. 있다면 임시 비밀번호 생성
     // 4. 임시 비밀번호를 암호화해서 사용자 정보를 업데이트
     // 5. 비밀번호를 Optional 로 리턴
-    boolean isExist = memberDao.existsByUsernameAndEmail(dto);
-    if(!isExist)
-      return Optional.empty();
-    String newPassword = RandomStringUtils.secure().nextAlphanumeric(20);
-    memberDao.updatePassword(dto.getUsername(), newPassword);
-    return Optional.ofNullable(newPassword);
+    Member member = memberDao.findByUsername(dto.getUsername());
+    if(member==null)
+      return false;
+
+    String newPassword = RandomStringUtils.secure().nextAlphanumeric(10);
+    memberDao.updatePassword(dto.getUsername(), encoder.encode(newPassword));
+
+    String html = "<p>아래 임시 비밀번호로 로그인 하세요</p>";
+    html+="<p>" + newPassword + "</p>";
+    sendMail("master@naver.com", member.getEmail(), "임시 비밀번호", html);
+    return true;
+  }
+
+  public boolean checkPassword(MemberDto.CheckPassword dto, String loginId) {
+    String encodedPassword = memberDao.findPasswordByUsername(loginId);
+    if(encodedPassword==null)
+      return false;
+    return encoder.matches(dto.getPassword(), encodedPassword);
   }
 
   public MemberDto.Read read(String loginId) {

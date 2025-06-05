@@ -46,19 +46,17 @@ public class MemberDto {
 
     // DTO 를 엔티티로 변환하는 메소드
     // 프론트에서는 String, 백에서는 MultipartFile 로 변환
-    public Member toEntity(String encodedPassword, String base64Image) {
-      return Member.builder().username(username).password(encodedPassword).email(email).profile(base64Image).build();
+    public Member toEntity(String encodedPassword, String base64Image, String code) {
+      return Member.builder().username(username).password(encodedPassword).email(email).profile(base64Image)
+        .isLock(true).code(code).build();
     }
   }
 
   @Data
-  public static class GeneratePassword {
+  public static class FindPassword {
     @NotEmpty
     @Pattern(regexp="^[a-z0-9]{6,10}$")
     private String username;
-    @NotEmpty
-    @Email
-    private String email;
   }
 
   @Data
@@ -82,5 +80,14 @@ public class MemberDto {
     @NotEmpty
     @Pattern(regexp = "^[a-zA-z0-9]{6,10}$")
     private String newPassword;
+  }
+
+  @Data
+  public static class CheckPassword {
+    // 필수 입력이고, 검증 해라
+    // 비밀 번호 받아 오기
+    @NotEmpty
+    @Pattern(regexp = "^[a-zA-z0-9]{6,10}$")
+    private String password;
   }
 }

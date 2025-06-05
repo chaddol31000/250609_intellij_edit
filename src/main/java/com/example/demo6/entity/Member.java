@@ -43,6 +43,10 @@ public class Member {
   @Builder.Default
   private boolean isLock = false;
 
+  // 인증 여부 체크 코드
+  // 가입하면 지워지는 코드
+  private String code;
+
   public MemberDto.Read toRead() {
     long days = ChronoUnit.DAYS.between(joinDay, LocalDate.now());
     return new MemberDto.Read(username, email, profile, joinDay, days, level);
