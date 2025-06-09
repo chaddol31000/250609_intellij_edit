@@ -25,6 +25,8 @@ public class MemberService {
   private PasswordEncoder encoder;
   @Autowired
   private JavaMailSender mailSender;
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
   public void sendMail(String 보낸이, String 받는이, String 제목, String 내용) {
     MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -140,7 +142,14 @@ public class MemberService {
     // 기존 암호화된 비밀번호를 읽어와 비밀번호가 맞는 지 확인하는 과정이 필요함
     // 비밀번호가 일치한 경우 새 비밀번호로 업데이트 → 틀리면 false
     String encodedPassword = memberDao.findPasswordByUsername(loginId);
-    if(encoder.matches(dto.getCurrentPassword(), encodedPassword))
+    // 기존 비밀번호
+//    System.out.println(dto.getCurrentPassword());
+    // 기존 비밀번호와 암호화된 비밀번호를 비교
+//    System.out.println(passwordEncoder.matches("DDDDDD", encodedPassword));
+    // 새 비밀번호
+//    System.out.println(encoder.matches("hhhhhh", encodedPassword));
+    // 비교 조건... 반대 조건... 잘 확인해...
+    if(!encoder.matches(dto.getCurrentPassword(), encodedPassword))
       return false;
     // 비밀번호가 일치한 경우 새 비밀번호로 업데이트
     return memberDao.updatePassword(loginId, encoder.encode(dto.getNewPassword()))==1;
@@ -148,5 +157,16 @@ public class MemberService {
 
   public void resign(String loginId) {
     memberDao.delete(loginId);
+  }
+
+  public MemberDto.Read changeProfile(MultipartFile profile, String loginId) {
+    String base64Image = "";
+    try {
+      base64Image = Demo6Util.convertToBase64(profile);
+      memberDao.updateProfile(base64Image, loginId);
+    } catch(IOException e) {
+      System.out.println(e.getMessage());
+    }
+    return memberDao.findByUsername(loginId).toRead();
   }
 }
