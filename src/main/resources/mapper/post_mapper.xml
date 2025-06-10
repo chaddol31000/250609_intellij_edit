@@ -39,7 +39,7 @@
         <result property="title" column="title" />
         <result property="content" column="content" javaType="java.lang.String" jdbcType="CLOB" />
         <result property="writer" column="writer" />
-        <result property="writeTime" column="write_time" javaType="java.time.LocalDateTime" jdbcType="DATE" />
+        <result property="writeTime" column="write_time" />
         <result property="readCnt" column="read_cnt" />
         <result property="goodCnt" column="good_cnt" />
         <result property="badCnt" column="bad_cnt" />
@@ -57,8 +57,8 @@
 
     <select id="findByPnoWithComments" resultMap="mapForRead">
         select
-            p.pno, p.title, p.content, p.write_time, p.read_cnt, p.good_cnt, p.bad_cnt,
-            c.cno as c_cno, c.content as c_content, c.writer as c_writer, c.write_time as c_write_time, c.pno as c_pno
+            p.pno, p.title, p.content, p.writer, to_char(p.write_time,'yyyy-mm-dd hh:mi:ss') as write_time, p.read_cnt, p.good_cnt, p.bad_cnt,
+            c.cno as c_cno, c.content as c_content, c.writer as c_writer, to_char(c.write_time, 'yyyy-mm-dd hh:mi:ss') as c_write_time, c.pno as c_pno
         from posts p left outer join comments c on p.pno=c.pno where p.pno=#{pno}
     </select>
 </mapper>

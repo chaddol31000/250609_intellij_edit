@@ -35,8 +35,8 @@ public class PostController {
   // ㄴ 만약 ↓ 주소에서 pno 를 넘기지 않았다면 get /posts 가 돼서 주소가 달라지게 된다
   // ㄴ pno 가 111 이라면 get /posts/111, 그런데 값을 안 넘겼다면 get /posts. 즉, 주소가 아예 다르다
   @Operation(summary = "글읽기", description = "글읽기")
-  @GetMapping("/posts/post/{pno}")
-  public ResponseEntity<Map<String,Object>> findByPno(@PathVariable int pno, Principal principal) {
+  @GetMapping("/posts/post")
+  public ResponseEntity<Map<String,Object>> findByPno(@RequestParam int pno, Principal principal) {
     // 로그인 했으면 로그인 아이디, 비로그인이면 null 을 대입
     String loginId = principal==null? null:principal.getName();
     return ResponseEntity.ok(service.findByPno(pno, loginId));
